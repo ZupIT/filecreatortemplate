@@ -17,76 +17,66 @@
 package filemanagertemplate
 
 import (
-    "testing"
-    "os"
+	"io/ioutil"
+	"os"
+	"testing"
+
 	"github.com/gobuffalo/packr/v2"
 )
 
-const  template = "templateExample.kt"
-const templateLocation = "../filecreatortemplate/"
+const template = "templateExample.kt"
 
 func TestFileCreatorTemplateSucces(t *testing.T) {
-    
-    var newFilePath = "./testaux/temp"
-    var newFileName = "TemplateCreatedExample"
-    var m = make(map[string]string)
-    m["packageName"] = "templateExample"
-    m["className"] = "Example"
-    
-    CreatFile(newFilePath, newFileName, "kt" ,templateLocation,template,m,os.Stdout)
- 
-    if getFileCreatedContet() != getTemplateResultExpectedContet(){
-        t.Errorf("The template created is not equals to the expected")
-    }
-    os.Remove("../filecreatortemplate/testaux/temp/TemplateCreatedExample.kt")
+
+	var newFilePath = "./testaux/temp"
+	var newFileName = "TemplateCreatedExample"
+	var m = make(map[string]string)
+	m["packageName"] = "templateExample"
+	m["className"] = "Example"
+	var templateContent = getTemplateContent()
+	CreatFile(newFilePath, newFileName, "kt", templateContent, m, os.Stdout)
+
+	if getFileCreatedContet() != getTemplateResultExpectedContet() {
+		t.Errorf("The template created is not equals to the expected")
+	}
+	os.Remove("../filecreatortemplate/testaux/temp/TemplateCreatedExample.kt")
 }
 
 func TestFileCreatorTemplateErrorFileAlreadyExist(t *testing.T) {
-    
-    var newFilePath = "./testaux/temp"
-    var newFileName = "TemplateCreatedExample"
-    var m = make(map[string]string)
-    m["packageName"] = "templateExample"
-    m["className"] = "Example"
-    
-    CreatFile(newFilePath, newFileName, "kt" ,templateLocation, template,m,os.Stdout)
-    defer func(){
-        recover()
-        os.Remove("../filecreatortemplate/testaux/temp/TemplateCreatedExample.kt")
 
-    }()
-    CreatFile(newFilePath, newFileName, "kt" ,templateLocation, template,m,os.Stdout)
-    t.Errorf("should panic")
+	var newFilePath = "./testaux/temp"
+	var newFileName = "TemplateCreatedExample"
+	var m = make(map[string]string)
+	m["packageName"] = "templateExample"
+	m["className"] = "Example"
+	var templateContent = getTemplateContent()
+	CreatFile(newFilePath, newFileName, "kt", templateContent, m, os.Stdout)
+	defer func() {
+		recover()
+		os.Remove("../filecreatortemplate/testaux/temp/TemplateCreatedExample.kt")
+
+	}()
+	CreatFile(newFilePath, newFileName, "kt", templateContent, m, os.Stdout)
+	t.Errorf("should panic")
 }
 
-func TestFileCreatorTemplateErrorTemplateNotFound(t *testing.T) {
-    
-    var newFilePath = "./testaux/temp"
-    var newFileName = "TemplateCreatedExample"
-    var m = make(map[string]string)
-    m["packageName"] = "templateExample"
-    m["className"] = "Example"
-
-    defer func(){
-        recover()
-        os.Remove("../filecreatortemplate/testaux/temp/TemplateCreatedExample.kt")
-
-    }()
-    CreatFile(newFilePath, newFileName, "kt" ,templateLocation, template+"/somethingToBroke",m,os.Stdout)
-    t.Errorf("should panic")
+func getFileCreatedContet() string {
+	box := packr.New("fileBox", "./temp")
+	data, _ := box.FindString("./testaux/temp/TemplateCreatedExample.kt")
+	var templateContent = string(data)
+	return templateContent
 }
 
-func getFileCreatedContet() string{
-    box :=  packr.New("fileBox", "./temp")
-    data, _ := box.FindString("./testaux/temp/TemplateCreatedExample.kt")
-    var templateContent = string(data)
-    return templateContent
+func getTemplateResultExpectedContet() string {
+	box := packr.New("fileBox", "./temp")
+	data, _ := box.FindString("./templateExampleExpected.kt")
+	var templateContent = string(data)
+
+	return templateContent
 }
 
-func getTemplateResultExpectedContet() string{
-    box :=  packr.New("fileBox", "./temp")
-    data, _ := box.FindString("./templateExampleExpected.kt")
-    var templateContent = string(data)
+func getTemplateContent() string {
+	templateContent, _ := ioutil.ReadFile("templateExample.kt")
 
-    return templateContent
+	return string(templateContent)
 }

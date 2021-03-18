@@ -21,47 +21,38 @@ import (
 	"io"
 	"os"
 	"strings"
-	"github.com/gobuffalo/packr/v2"
 )
 
-func CreatFile(path string, fileName string, extension string, templateLocation string, templateName string, replace map[string]string, writer io.Writer) {
-   
-    box :=  packr.New("fileBox", templateLocation)
-    data, err := box.FindString(templateName)
-    var templateContent = string(data)
+func CreatFile(path string, fileName string, extension string, templateContent string, replace map[string]string, writer io.Writer) {
 
-    if err != nil{
-        panic("Error to read the template")
-    }
-    
-    var fileCompleteName = path+"/"+fileName+"." + extension
+	var fileCompleteName = path + "/" + fileName + "." + extension
 
-    if fileExists(fileCompleteName){
-        panic("File already exist")
-    }
+	if fileExists(fileCompleteName) {
+		panic("File already exist")
+	}
 
-     destination, err := os.Create(fileCompleteName)
-     if err != nil {
-        panic(err)
-        return
-     }
-     defer destination.Close()
-     var content = createFileUsingTemplate(templateContent, replace)
-     fmt.Fprintf(destination,content)
+	destination, err := os.Create(fileCompleteName)
+	if err != nil {
+		panic(err)
+		return
+	}
+	defer destination.Close()
+	var content = createFileUsingTemplate(templateContent, replace)
+	fmt.Fprintf(destination, content)
 }
 
 func fileExists(filename string) bool {
-    info, err := os.Stat(filename)
-    if os.IsNotExist(err) {
-        return false
-    }
-    return !info.IsDir()
+	info, err := os.Stat(filename)
+	if os.IsNotExist(err) {
+		return false
+	}
+	return !info.IsDir()
 }
 
-func createFileUsingTemplate(templateContent string, replace map[string]string) string{
-    var result = templateContent
-    for key, value := range replace {
-        result = strings.ReplaceAll(result, "{"+key+"}", value)
-    }
-    return result
+func createFileUsingTemplate(templateContent string, replace map[string]string) string {
+	var result = templateContent
+	for key, value := range replace {
+		result = strings.ReplaceAll(result, "{"+key+"}", value)
+	}
+	return result
 }
